@@ -36,6 +36,11 @@ def index():
     return render_template("index.html", aluno=aluno)
 
 
+@app.route("/landing")
+def landing():
+    # Se o seu arquivo se chama landin.html:
+    return render_template("landin.html")
+
 @app.route('/exames')
 def lista_exames():
     exames = (Exame.query.options(
