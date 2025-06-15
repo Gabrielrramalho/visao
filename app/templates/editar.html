@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Secretaria da Saúde</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+
+    <style>
+        /* (Seu CSS atual permanece o mesmo; não estou removendo nada) */
+
+        nav {
+            width: 100%;
+            margin: 0;
+            background-color: #ffcc29;
+            color: #515151;
+        }
+
+        .navbar-brand {
+            margin: 0 20px;
+            color: #515151;
+        }
+
+        .navbar-brand:hover {
+            color: #ff6900;
+        }
+
+        .navbar {
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #logosecretaria {
+            width: 200px;
+            height: 50px;
+        }
+
+        body {
+            padding-top: 70px;
+            /* espaço para navbar fixa */
+            background-color: #f5f5f5;
+        }
+
+        /* =============================================================================
+           Forçar borda amarela em todos os inputs com classe .form-control
+           ============================================================================= */
+        input.form-control {
+            border: 2px solid #ffc107 !important;
+            border-radius: 4px;
+            box-shadow: none !important;
+        }
+
+        input.form-control:focus {
+            border-color: #e6a800 !important;
+            box-shadow: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <img id="logosecretaria" src="{{ url_for('static', filename='images/SecretariaEducacao.png') }}">
+        <a class="navbar-brand" href="{{ url_for('index') }}">Home</a>
+        <a class="navbar-brand" href="{{ url_for('form_user') }}">Dados Pessoais</a>
+        <a class="navbar-brand" href="{{ url_for('lista_exames') }}">Exame</a>
+        <a class="navbar-brand" href="{{ url_for('streamlit_dashboard') }}">Relatórios</a>
+        <a class="navbar-brand" href="{{ url_for('form_escola') }}">Escola</a>
+    </nav>
+    <br>
+
+    <div id="pagina">
+        <form action="{{ url_for('editar_exame', id=exame.id_exame) }}" method="post">
+            {# Hidden field para id do aluno #}
+            {% if exame.aluno %}
+            <input type="hidden" name="id_aluno" value="{{ exame.aluno.id_aluno }}">
+            {% endif %}
+
+            <!-- ==================== Ajuste mínimo para posicionar “Data/Hora” e “Nome” acima do “DIP” ==================== -->
+            <div class="container">
+                <div class="row mb-4" id="dadospessoais">
+                    <!-- Três colunas vazias para empurrar o conteúdo médio para a 4ª coluna -->
+                    <div class="col"></div>
+                    <div class="col"></div>
+                    <div class="col"></div>
+
+                    <!-- Coluna 4: aqui ficam Data/Hora Escaneamento e Nome -->
+                    <div class="col">
+                        <!-- Data/Hora Escaneamento (largura limitada) -->
+                        <div class="mb-3" id="divDataHora" style="max-width: 300px;">
+                            <label for="InputDataHoraEscaneamento" id="DataHoraEscaneamento">Data/Hora
+                                Escaneamento</label>
+                            <input type="datetime-local" class="form-control" id="InputDataHoraEscaneamento"
+                                name="InputDataHoraEscaneamento" min="2024-01-01T00:00" max="2026-12-31T00:00" required
+                                {% if exame.data_hora_escaneamento %}
+                                value="{{ exame.data_hora_escaneamento.strftime('%Y-%m-%dT%H:%M') }}" {% endif %}>
+                        </div>
+                        <!-- Nome (mesma largura do campo de Data/Hora) -->
+                        <div class="mb-3 mt-3" id="divNome" style="max-width: 300px;">
+                            <label for="InputNome" id="Nome">Nome</label>
+                            <input type="text" class="form-control" id="InputNome" name="InputNome"
+                                value="{{ exame.aluno.nome if exame.aluno else '' }}" readonly>
+                        </div>
+                    </div>
+
+                    <!-- Outras três colunas vazias para completar as 7 colunas -->
+                    <div class="col"></div>
+                    <div class="col"></div>
+                    <div class="col"></div>
+                </div>
+            </div>
+            <!-- ============ Fim do ajuste mínimo; abaixo continua exatamente como seu código original ============ -->
+
+            <div class="container">
+                <!-- 1) Acrescentei “d-flex flex-wrap justify-content-between” à row geral -->
+                <div class="row flex-wrap justify-content-between" id="dadosexame">
+                    <!-- ─────────────────────────────────────────────────────────── -->
+                    <!-- COLUNA 1: ”primeira” (OD – Raio, Eixo Steeper)               -->
+                    <!-- ─────────────────────────────────────────────────────────── -->
+                    <div class="col d-flex flex-column align-items-center mb-3" id="primeira">
+                        <div class="mb-3 w-100">
+                            <input type="text" class="form-control" id="raio_corneano_od_mm" name="raio_corneano_od_mm"
+                                placeholder="Raio OD (mm)"
+                                value="{{ exame.raio_corneano_od_mm if exame.raio_corneano_od_mm is not none else '' }}">
+                        </div>
+                        <div class="mb-3 w-100">
+                            <input type="text" class="form-control" id="eixo_querato_steeper_od"
+                                name="eixo_querato_steeper_od" placeholder="Eixo Steeper OD"
+                                value="{{ exame.eixo_querato_steeper_od if exame.eixo_querato_steeper_od is not none else '' }}">
+                        </div>
+
+                        <!-- Mantive exatamente a imagem “reta.png” no mesmo lugar -->
+                        <img id="reta" src="{{ url_for('static', filename='images/reta.png') }}" alt="Reta OD"
+                            class="img-fluid mb-3">
+
+                        <div class="mb-3 w-100">
+                            <input type="text" class="form-control" id="eixo_querato_flatter_od"
+                                name="eixo_querato_flatter_od" placeholder="Eixo Flatter OD"
+                                value="{{ exame.eixo_querato_flatter_od if exame.eixo_querato_flatter_od is not none else '' }}">
+                        </div>
+                        <h1 class="mt-2">OD</h1>
+                    </div>
+
+                    <!-- ─────────────────────────────────────────────────────────── -->
+                    <!-- COLUNA 2: ”segunda” (Imagem olho-direito + SE, DS, Axis + Input9) -->
+                    <!-- ─────────────────────────────────────────────────────────── -->
+                    <div class="col" id="segunda">
+                        <div id="olhos">
+                            <div id="row1col2">
+                                <img id="olho-direito"
+                                    src="{{ url_for('static', filename='images/olho-direito.jpg') }}">
+                            </div>
+                        </div>
+                        <div id="InputsGrau">
+                            <div id="Inputs">
+                                <input type="text" placeholder="SE" class="form-control" id="SE_Direito"
+                                    name="SE_Direito" required {% if exame.se_direito is not none %}
+                                    value="{{ exame.se_direito }}" {% endif %}>
+                            </div>
+                            <div id="Inputs">
+                                <input type="text" placeholder="DS" class="form-control" id="DS_Direito"
+                                    name="DS_Direito" required {% if exame.ds_direito is not none %}
+                                    value="{{ exame.ds_direito }}" {% endif %}>
+                                <input type="text" placeholder="DC" class="form-control" id="DC_Direito"
+                                    name="DC_Direito" required {% if exame.dc_direito is not none %}
+                                    value="{{ exame.dc_direito }}" {% endif %}>
+                                <input type="text" placeholder="Axis" class="form-control" id="Axis_Direito"
+                                    name="Axis_Direito" required {% if exame.axis_direito is not none %}
+                                    value="{{ exame.axis_direito }}" {% endif %}>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ─────────────────────────────────────────────────────────── -->
+                    <!-- COLUNA 3: ”indicativo-olho1” (Somente o “D”)                -->
+                    <!-- ─────────────────────────────────────────────────────────── -->
+                    <div class="col d-flex flex-column align-items-center mb-3" id="indicativo-olho1">
+                        <h2 class="mt-4">D</h2>
+                    </div>
+
+                    <!-- ─────────────────────────────────────────────────────────── -->
+                    <!-- COLUNA 4: ”terceira” (Distância interpupilar + Input5)      -->
+                    <!-- ─────────────────────────────────────────────────────────── -->
+                    <div class="col d-flex flex-column align-items-center mb-3" id="terceira">
+                        <div class="w-100 mb-3">
+                            <input type="number" step="0.1" id="distancia_interpupilar_mm"
+                                name="distancia_interpupilar_mm" class="form-control" required
+                                value="{{ exame.distancia_interpupilar_mm if exame.distancia_interpupilar_mm is not none else '' }}">
+                        </div>
+                    </div>
+
+                    <!-- ─────────────────────────────────────────────────────────── -->
+                    <!-- COLUNA 5: ”indicativo-olho2” (Somente o “E”)                -->
+                    <!-- ─────────────────────────────────────────────────────────── -->
+                    <div class="col d-flex flex-column align-items-center mb-3" id="indicativo-olho2">
+                        <h2 class="mt-4">E</h2>
+                    </div>
+
+                    <!-- ─────────────────────────────────────────────────────────── -->
+                    <!-- COLUNA 6: ”quarta” (Imagem olho-esquerdo + SE, DS, DC, Axis)  -->
+                    <!-- ─────────────────────────────────────────────────────────── -->
+                    <div class="col d-flex flex-column align-items-center mb-3" id="quarta">
+                        <div id="olhos">
+                            <div id="row1col4">
+                                <img id="olho-esquerdo"
+                                    src="{{ url_for('static', filename='images/olho-esquerdo.jpg') }}"
+                                    alt="Olho Esquerdo" class="img-fluid mb-2">
+                            </div>
+                        </div>
+                        <div id="InputsGrau">
+                            <div id="Inputs">
+                                <input type="text" placeholder="SE" class="form-control" id="SE_Esquerdo"
+                                    name="SE_Esquerdo" required {% if exame.se_esquerdo is not none %}
+                                    value="{{ exame.se_esquerdo }}" {% endif %}>
+                            </div>
+                            <div id="Inputs">
+                                <input type="text" placeholder="DS" class="form-control" id="DS_Esquerdo"
+                                    name="DS_Esquerdo" required {% if exame.ds_esquerdo is not none %}
+                                    value="{{ exame.ds_esquerdo }}" {% endif %}>
+                                <input type="text" placeholder="DC" class="form-control" id="DC_Esquerdo"
+                                    name="DC_Esquerdo" required {% if exame.dc_esquerdo is not none %}
+                                    value="{{ exame.dc_esquerdo }}" {% endif %}>
+                                <input type="text" placeholder="Axis" class="form-control" id="Axis_Esquerdo"
+                                    name="Axis_Esquerdo" required {% if exame.axis_esquerdo is not none %}
+                                    value="{{ exame.axis_esquerdo }}" {% endif %}>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ─────────────────────────────────────────────────────────── -->
+                    <!-- COLUNA 7: ”quinta” (Raio OS, Eixo Steeper OS, Reta, Eixo Flatter OS, “OS”) -->
+                    <!-- ─────────────────────────────────────────────────────────── -->
+                    <div class="col d-flex flex-column align-items-center mb-3" id="quinta">
+                        <div class="w-100 mb-3">
+                            <!-- Corrigido para nome “raio_corneano_os_mm” -->
+                            <input type="text" class="form-control" id="raio_corneano_os_mm"
+                                name="raio_corneano_os_mm"
+                                value="{{ exame.raio_corneano_os_mm if exame.raio_corneano_os_mm is not none else '' }}">
+                        </div>
+                        <div class="w-100 mb-3">
+                            <input type="text" class="form-control" id="eixo_querato_steeper_os"
+                                name="eixo_querato_steeper_os"
+                                value="{{ exame.eixo_querato_steeper_os if exame.eixo_querato_steeper_os is not none else '' }}">
+                        </div>
+                        <img id="reta" src="{{ url_for('static', filename='images/reta.png') }}" alt="Reta OS"
+                            class="img-fluid mb-3">
+
+                        <div class="w-100 mb-3">
+                            <input type="text" class="form-control" id="eixo_querato_flatter_os"
+                                name="eixo_querato_flatter_os"
+                                value="{{ exame.eixo_querato_flatter_os if exame.eixo_querato_flatter_os is not none else '' }}">
+                        </div>
+                        <h1 class="mt-2">OS</h1>
+                    </div>
+                    <!-- ─────────────────────────────────────────────────────────── -->
+                </div>
+                <!-- fim de <div class="row" id="dadosexame"> -->
+            </div>
+            <!-- fim de <div class="container"> -->
+
+            <div class="container mt-4">
+                <button id="submit" type="submit" class="btn btn-primary">Enviar</button>
+            </div>
+        </form>
+    </div>
+</body>
+
+</html>
